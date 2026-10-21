@@ -10,7 +10,7 @@ AI 收到「帮我做一个《书名》的在线共读网站」后，自动上�
 
 **线上示例**：
 - [《中庸》33 天共读站](https://zhongyong.aiyazone.com)
-- 《大学》11 天共读站（即将部署）
+- [《大学》11 天共读站](https://daxue.aiyazone.com)
 
 均由本 Skill 生成。
 

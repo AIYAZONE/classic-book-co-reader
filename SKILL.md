@@ -31,7 +31,7 @@ author: AIYAZONE
 
 本技能 = **一个 token 化模板 + 一个通用构建脚本 + 一份数据 Schema**。换一本书，agent 上网取底本、整理成数据、改 `config.json`，跑一次构建即可得到自包含 HTML——无外部依赖、无登录、无云端，双击即开，也能托管到任意静态空间。
 
-**线上示例**：《中庸》共读站 `https://zhongyong.aiyazone.com` 和《大学》共读站均由国学经典书籍网站生成器生成。
+**线上示例**：《中庸》共读站 `https://zhongyong.aiyazone.com` 和《大学》共读站 `https://daxue.aiyazone.com` 均由国学经典书籍网站生成器生成。
 
 ## When to Use
 
