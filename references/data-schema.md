@@ -17,10 +17,11 @@ python3 scripts/build_reader.py 项目目录 [--out dist/index.html]
 | `key` | localStorage 键前缀（仅小写字母数字）。默认取 book 的拼音/英文。用于 `进度`/`书签`/`笔记` 存储隔离。 |
 | `favchar` | 浏览器页签 favicon 用的字，默认取 `book[0]`。印章红圆角 + 白字。 |
 | `theme` | 主题色（顶栏/印章/强调），默认 `#a02c2c`。 |
-| `share_base` | 分享链接基址。留空 `''` 时自动用 `location.origin`（托管后分享即带 `#ch-N` 直达）。若部署在子路径需显式填。 |
-| `schools` | 解读标签的学派/视角简介字典 `{标签: 简介}`。jiedu 中出现该标签即展开简介；留空则无简介。 |
-| `basis` | 解读标签的「所本」字典（可选）。 |
-| `segments` | 章间呼应徽标分段 `[[阈值, 标签], ...]`，如 `[[3,"立本"],[12,"力行"],[20,"致用"],[99,"极则"]]`；留空无徽标。 |
+| `subtitle` | 封面标题下方一行说明，**必须有且须准确**。格式如「《礼记》第四十二篇 · 曾子述 · 四书之首」。写错作者归因是硬伤。 |
+| `share_base` | 分享链接基址。留空 `''` 时自动用 `location.origin`。若部署在子路径需显式填。 |
+| `schools` | 解读标签的学派/视角简介字典 `{标签: 简介}`。jiedu 中出现该标签即展开简介。 |
+| `basis` | 解读标签的「所本」字典（可选），如 `{"程朱理学":"《四书章句集注》"}`。 |
+| `segments` | 章间呼应徽标分段 `[[阈值, 标签], ...]`，如 `[[1,"三纲领"],[5,"八条目"],[11,"平天下"]]`；留空无徽标。 |
 | `intro` | 封面引言段落（HTML 允许）。 |
 | `sidebar_foot` | 侧栏底部说明（HTML 允许）。 |
 
@@ -70,11 +71,11 @@ python3 scripts/build_reader.py 项目目录 [--out dist/index.html]
   }
 }
 ```
-- `zhu` → 注释标签；`chuan`/`jingzheng` → 串讲标签（经证链）。
-- `jiedu` → 解读标签（折叠学派简介）。`label` 命中 config.schools 才显示简介。
+- `zhu` → 注释标签；`chuan`/`jingzheng` → 串讲标签（经证链，以经解经）。
+- `jiedu` → 解读标签（四视角）。每个分项含 `label`（如"程朱理学"）、`text`（正文），可选 `intro`（覆盖 schools 简介）、`basis`（覆盖 config.basis）。
 - `dao` → 导读标签。
 - `sheng` → 省察问（也可放 p1.reflections，二者任一存在即显示）。
-- 标签按「有内容才显示」动态生成，空数据不渲染该标签。
+- **格式约束**：`content` 必须是 dict（key 为章号字符串 `"1"`），**不能是 list**。标签按「有内容才显示」动态生成。
 
 ---
 
@@ -87,11 +88,14 @@ python3 scripts/build_reader.py 项目目录 [--out dist/index.html]
   "quotes":   [["名句", "章号数字", "语境说明(可选)"], ...],
   "spine":    [["分段名", "第X–Y章", "说明"], ...],
   "anshen":   ["安心签1", "安心签2", ...],          // 长度=章数，封面每日抽一条
-  "modern_anxiety": [{"theme":"焦虑主题","stress":"处境","remedy":"对症","quote":"引文"}],  // 可选
+  "modern_anxiety": [{"theme":"焦虑主题","stress":"现代处境","remedy":"经典对症","quote":"引文"}],
   "cite":     "引用与出处说明文字（可选，默认有通用版）"
 }
 ```
-研读页固定 10 个版块，**有数据才渲染对应版块**（结构/概念/名句恒显，其余按需）。
+- **格式约束**：`structure`/`spine` 为 list of lists，**不可写成字符串**。
+- `concepts` 第 5 项（occurrences）必须填真实引文句子，**不可用数字占位**。
+- `modern_anxiety` 字段名严格为 `theme`/`stress`/`remedy`/`quote`，**不可用 `title`/`problem`/`cure`**。
+- 研读页固定 10 个版块，有数据才渲染对应版块。
 
 ---
 
@@ -119,7 +123,7 @@ python3 scripts/build_reader.py 项目目录 [--out dist/index.html]
 
 ---
 
-## pinyin.json（可选 · 注音/通假词典）
+## pinyin.json（强烈建议 · 注音/通假词典）
 
 ```json
 {

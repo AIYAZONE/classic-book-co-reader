@@ -3,6 +3,7 @@
   "key": "example",
   "favchar": "示",
   "theme": "#a02c2c",
+  "subtitle": "示例书 · 作者 · 分类",
   "share_base": "",
   "schools": {
     "程朱理学": "示例学派简介……",

@@ -436,6 +436,7 @@ def main():
 
     favicon = make_favicon(favchar, theme)
     intro = cfg.get('intro', '%s共读 · 一天一章，循序渐进。' % book)
+    subtitle = cfg.get('subtitle', '')
     sidebar_foot = cfg.get('sidebar_foot', '一天一章 · %s天<br>文本依据：%s<br>虚线标注的字为通假 / 异读，点按可看说明' % (total_cn, book))
 
     html = (tpl
@@ -445,6 +446,7 @@ def main():
             .replace('{{FAVICON}}', favicon)
             .replace('{{THEME}}', theme)
             .replace('{{INTRO}}', intro)
+            .replace('{{SUBTITLE}}', subtitle)
             .replace('{{SIDEBAR_FOOT}}', sidebar_foot)
             .replace('__TOTAL__', str(total))
             .replace('__CN__', json.dumps(CN, ensure_ascii=False))
