@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="{{FAVICON}}" />
+<meta name="theme-color" content="{{THEME}}" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>{{BOOK}} · {{TOTAL_CN}}天共读</title>
+<style>
+:root{
+  --paper:#f6f1e6; --card:#fffdf7; --ink:#2e2a22; --soft:#71695a;
+  --accent:#a02c2c; --accent-deep:#8a1f1f; --accent-bg:#f7e9e4; --line:#e4dac4;
+  --sidebar-w:300px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  background-image:radial-gradient(rgba(160,44,44,.03) 1px, transparent 1px);
+  background-size:22px 22px;
+  color:var(--ink);
+  font-family:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun",serif;
+  font-size:17px;line-height:2;-webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit}
+.btn{font-size:14px;padding:6px 14px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:6px;cursor:pointer;line-height:1.6;transition:.15s}
+.btn:hover{background:var(--accent);color:#fff}
+.btn.ghost{border-color:var(--line);color:var(--soft)}
+.btn.ghost:hover{border-color:var(--soft);background:var(--soft);color:#fff}
+
+/* ========== 布局：窄屏（移动优先）——侧栏为抽屉 ========== */
+.layout{display:block}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:84%;max-width:340px;z-index:200;background:var(--paper);border-right:1px solid var(--line);transform:translateX(-100%);transition:transform .25s ease;box-shadow:2px 0 16px rgba(0,0,0,.14);overflow-y:auto;overscroll-behavior:contain}
+body.toc-open .sidebar{transform:none}
+#tocBackdrop{position:fixed;inset:0;background:rgba(46,42,34,.38);z-index:150;opacity:0;visibility:hidden;transition:opacity .2s}
+body.toc-open #tocBackdrop{opacity:1;visibility:visible}
+.sidebar-head{display:block;padding:15px 18px 12px;border-bottom:1px solid var(--line);background:var(--paper)}
+.sidebar-foot{display:block;padding:12px 18px 22px;border-top:1px solid var(--line);font-size:12px;color:var(--soft);line-height:1.9}
+.toc-details{border-top:none}
+.toc-details summary{display:none}
+.toc-details summary::-webkit-details-marker{display:none}
+.sidebar .toc{padding:6px 12px 18px}
+.toc ol{list-style:none;display:block;gap:8px}
+.toc li{margin-bottom:8px}
+.toc a{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--ink);font-size:14px;transition:.15s}
+.toc a:hover{border-color:var(--accent);background:#fff}
+.toc a.active{border-color:var(--accent);background:var(--accent-bg)}
+.toc a.today .d::after{content:" · 今日";color:var(--accent);font-weight:600}
+.seal{flex:none;min-width:26px;height:26px;padding:0 5px;background:var(--accent);color:#fff;font-family:"STKaiti","KaiTi",serif;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:5px}
+.toc .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toc .d{font-size:11px;color:var(--soft);white-space:nowrap}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(246,241,230,.93);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:780px;margin:0 auto;padding:0 18px;height:54px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:"STKaiti","KaiTi","Kaiti SC",serif;font-size:22px;letter-spacing:2px;white-space:nowrap;flex:none}
+.brand small{font-size:12px;letter-spacing:3px;color:var(--soft);margin-left:6px}
+.top-actions{display:flex;gap:8px;align-items:center;flex:1;min-width:0}
+.top-spacer{flex:1}
+/* 顶栏导航「当前页」选中态 */
+.nav-btn.active{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
+
+/* ========== 底部导航（移动端 tab 栏） ========== */
+.bottom-nav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:80;background:rgba(246,241,230,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+.bn-item{flex:1;border:none;background:transparent;color:var(--soft);font-size:14.5px;padding:8px 0 13px;cursor:pointer;line-height:1.35;font-family:inherit;text-align:center;position:relative;transition:color .15s}
+.bn-item.active{color:var(--accent);font-weight:700}
+.bn-item.active:after{content:"";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:28px;height:4px;border-radius:3px;background:var(--accent)}
+.bn-item:active{opacity:.6}
+
+.wrap{max-width:780px;margin:0 auto;padding:0 18px}
+
+.hero{text-align:center;padding:52px 0 8px}
+.hero h1{font-family:"STKaiti","KaiTi","Kaiti SC",serif;font-size:56px;letter-spacing:14px;text-indent:14px;font-weight:600}
+.hero .sub{margin-top:10px;color:var(--soft);font-size:13px;letter-spacing:2px}
+.hero .rule{width:64px;height:2px;background:var(--accent);margin:20px auto 0;opacity:.7}
+.intro{margin:26px 0 0;padding:18px 20px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:15px;color:#4a4438;text-align:justify}
+
+.plan{margin:26px 0;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:18px 20px}
+.plan-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.plan-head h2{font-size:18px;letter-spacing:2px;font-weight:600}
+.chip{background:var(--accent-bg);color:var(--accent-deep);border:1px solid #e8c9c2;font-size:13px;padding:3px 12px;border-radius:999px;white-space:nowrap}
+.plan-body{margin-top:12px}
+.today-line{font-size:20px;font-family:"STKaiti","KaiTi",serif;letter-spacing:1px}
+.progress{height:8px;background:#efe7d5;border-radius:999px;margin:14px 0;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#c05a4a,var(--accent));border-radius:999px;transition:width .4s}
+.plan-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--soft)}
+.plan-actions input{font-family:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+.plan-actions .spacer{flex:1}
+.plan-actions .hint{font-size:12px;color:var(--soft)}
+.plan-date{font-size:13px;color:var(--ink)}
+.plan-date b{color:var(--accent-deep);font-weight:600}
+.tp-date{font-family:inherit;font-size:14px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+.tp-anshen{font-family:"STKaiti","KaiTi",serif;font-size:16px;line-height:1.7;color:var(--ink);text-align:justify;background:linear-gradient(135deg,var(--accent-bg),#fdf3ee);border:1px solid #eccfc6;border-radius:10px;padding:10px 12px;margin:2px 0 4px}
+.noscript-tip{display:none;margin-top:10px;font-size:12px;color:var(--soft)}
+
+.chapter{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px 26px 20px;margin:22px 0;scroll-margin-top:70px}
+.ch-head{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px dashed var(--line);margin-bottom:16px}
+.seal-lg{min-width:40px;height:40px;padding:0 8px;font-size:20px;border-radius:8px}
+.ch-head h2{font-size:20px;letter-spacing:3px;font-weight:600;line-height:1.5}
+.ch-head .lab{font-size:13px;color:var(--soft);letter-spacing:1px;margin-top:2px}
+.ch-head .spacer{flex:1}
+.share-btn{flex:none;font-size:12px;padding:4px 10px}
+.ch-text p{text-align:justify;margin:0 0 4px}
+.ch-text p:last-child{margin-bottom:0}
+.ch-foot{margin-top:16px;text-align:right}
+.ch-foot a{font-size:12px;color:var(--soft);text-decoration:none;border-bottom:1px dotted var(--soft)}
+.det{margin-top:18px;border-top:1px dashed var(--line);padding-top:14px}
+.det-label{font-size:12px;color:var(--soft);letter-spacing:3px;margin-bottom:10px}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.tab-btn{font-size:13px;padding:6px 15px;border:1px solid var(--line);background:var(--paper);color:var(--soft);border-radius:999px;cursor:pointer;transition:.15s;line-height:1.5}
+.tab-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.panels{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.panel{display:none}
+.panel.active{display:block;animation:fade .2s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.panel p{text-align:justify;text-indent:2em;margin:0 0 14px;line-height:2;font-size:15.5px}
+.panel p:last-child{margin-bottom:0}
+.zhu{list-style:none;margin:0;padding:0}
+.zhu li{margin:0 0 10px;padding-left:1.4em;text-indent:-1.4em;line-height:1.9;font-size:15px}
+.zhu b{color:var(--accent-deep);font-weight:600;margin-right:4px}
+.jie{list-style:none;margin:0;padding:0}
+.jie li{margin:0 0 12px;padding-left:1.6em;text-indent:-1.6em;line-height:1.95;font-size:15px}
+.jie .src{display:inline-block;font-weight:600;color:var(--accent-deep);margin-right:7px;font-size:13px;letter-spacing:1px}
+.jiedu{display:flex;flex-direction:column;gap:2px}
+.jrow{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px dashed var(--line)}
+.jrow:last-child{border-bottom:none}
+.jlabel{flex:none;min-width:62px;text-align:center;background:var(--accent-bg);color:var(--accent-deep);border:1px solid #e8c9c2;font-size:12px;padding:3px 8px;border-radius:6px;line-height:1.4;font-weight:600;font-family:inherit;cursor:pointer;appearance:none;-webkit-appearance:none}
+.jlabel:after{content:"？";margin-left:3px;font-weight:400;opacity:.55}
+.jhint{margin:0 0 2px;font-size:12px;color:var(--soft);letter-spacing:.5px;text-indent:0}
+.jintro{display:none;margin:0 0 10px;font-size:13px;line-height:1.85;color:#4a4438;background:var(--accent-bg);border:1px dashed #e8c9c2;border-radius:8px;padding:9px 12px;text-align:justify}
+.jrow.jopen .jintro{display:block}
+.jrow.jopen .jlabel:after{content:"？";opacity:.3}
+.jrow p{margin:0;line-height:1.9;font-size:15px;text-align:justify;text-indent:2em}
+.nodata{color:var(--soft);font-size:13px}
+
+/* 注音 ruby + 通假虚线 */
+ruby{ruby-position:over}
+ruby rt{font-size:.58em;color:var(--accent-deep);font-family:"Songti SC","STSong",serif;user-select:none;line-height:1;font-weight:400}
+ruby.tj{border-bottom:1px dashed var(--accent);cursor:pointer}
+body.no-py ruby rt{display:none}
+.py-toggle.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.flash{animation:flash 1.8s}
+@keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--accent-bg)}100%{box-shadow:0 0 0 0 transparent}}
+
+.backtop{position:fixed;right:18px;bottom:22px;z-index:60;width:42px;height:42px;border-radius:50%;border:1px solid var(--accent);background:var(--card);color:var(--accent);font-size:15px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.backtop.show{display:flex}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:70;background:rgba(46,42,34,.92);color:#fff;font-size:13px;padding:8px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1}
+footer{padding:34px 0 46px;text-align:center;color:var(--soft);font-size:12px;line-height:2}
+
+@media (max-width:640px){
+  .toc ol{grid-template-columns:1fr}
+  .hero h1{font-size:44px;letter-spacing:10px;text-indent:10px}
+  .chapter{padding:20px 18px 16px}
+  body{font-size:16.5px}
+  .topbar-inner{height:50px;padding:0 12px;gap:8px}
+  .topbar .brand{font-size:19px;letter-spacing:1px}
+  .topbar .brand small{display:none}
+  .top-actions{gap:6px;justify-content:flex-end;flex:1;min-width:0}
+  .top-actions .btn{padding:6px 10px;font-size:13px;white-space:nowrap}
+  .tlong{display:none}
+  .study{padding:20px 16px 16px}
+  .pager{padding:10px 12px}
+  .pager .btn{padding:8px 12px}
+  .pager .pager-info{font-size:12px;letter-spacing:0;line-height:1.6}
+  .pager .plabel{display:none}
+}
+/* 窄屏（含平板）：顶栏导航（首页/研读/今日/目录）移到底部 tab 栏，顶栏只留设置按钮；底部导航常驻 */
+@media (max-width:1023px){
+  .desk-only{display:none}
+  .top-actions .nav-btn{display:none}
+  .bottom-nav{display:flex}
+  /* 顶栏在移动端不吸顶：随正文滚动消失，最大化正文可视面积；主导航已由底部固定 tab 栏承载 */
+  .topbar{position:static;backdrop-filter:none;border-bottom:none}
+  /* 跳转锚点时不再为吸顶顶栏预留空间 */
+  .chapter,.study{scroll-margin-top:12px}
+  /* 目录抽屉：章号 / 标题 / 共读日期 两行展示，日期常显 */
+  .sidebar .toc a{display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:3px;align-items:center;padding:11px 14px;margin-bottom:4px}
+  .sidebar .toc .seal{grid-row:span 2}
+  .sidebar .toc .t{grid-column:2;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sidebar .toc .d{grid-column:2;font-size:11px;color:var(--soft);white-space:nowrap}
+  .content{padding-bottom:82px}
+  .backtop{bottom:92px}
+  /* 移动端顶栏仅作品牌条，工具入口统一走底部导航，避免与底栏重复 */
+  #toolsBtn{display:none}
+}
+
+/* 目录已读进度标记 */
+.toc a.read .seal{background:#b3a48e}
+.toc a.read .t{color:#7a7263}
+
+/* ========== 宽屏：左侧目录栏 + 右侧正文（PDF 阅读器式） ========== */
+@media (min-width:1024px){
+  .layout{display:flex;align-items:flex-start;max-width:1320px;margin:0 auto}
+  /* 内容列必须撑满剩余宽度：flex 项默认按内容收缩，短章节会把整列拉窄 */
+  .content{flex:1 1 auto;min-width:0}
+  .wrap{max-width:920px}
+  .topbar-inner{max-width:920px}
+  .plan{position:sticky;top:60px;z-index:5}
+  .sidebar{
+    flex:0 0 var(--sidebar-w);width:var(--sidebar-w);
+    position:sticky;top:0;height:100vh;
+    transform:none; /* 宽屏为常驻左栏，必须撤销移动端抽屉的 off-screen 位移 */
+    overflow-y:auto;overscroll-behavior:contain;
+    border-bottom:none;border-right:1px solid var(--line);
+  }
+  .sidebar-head{display:block;position:sticky;top:0;z-index:2;background:var(--card);padding:14px 18px 12px;border-bottom:1px solid var(--line)}
+  .sidebar-head .brand{font-size:22px}
+  .sidebar-sub{margin-top:4px;font-size:12px;color:var(--soft);letter-spacing:2px}
+  .toc-details{border-top:none;display:block}
+  .toc-details summary{display:none}
+  .sidebar .toc{padding:10px 12px 16px}
+  .sidebar .toc ol{display:block}
+  .sidebar .toc a{display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:0;align-items:center;padding:8px 10px;margin-bottom:2px}
+  .sidebar .toc .seal{grid-row:span 2}
+  .sidebar .toc .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+  .sidebar .toc .d{grid-column:2;font-size:11px}
+  .sidebar-foot{display:block;padding:10px 18px;border-top:1px solid var(--line);font-size:11px;color:var(--soft);line-height:1.8}
+  .topbar .brand{display:none}
+}
+/* 细滚动条 */
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:#d8cdb4;border-radius:3px}
+
+@media print{
+  .sidebar,.topbar,.backtop,.plan-actions,.share-btn,.ch-foot,.det,.pager{display:none}
+  .layout{display:block}
+  body{background:#fff}
+  .chapter,.plan,.intro{break-inside:avoid-page;border-color:#ccc}
+  .study,.study-nav{display:none}
+  body.paged .view{display:block !important}
+  body.paged .view.active-view{display:block !important}
+}
+
+/* ========== 研读 hub ========== */
+.study{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px 26px 22px;margin:22px 0;scroll-margin-top:70px}
+.study-head{text-align:center;margin-bottom:18px}
+.study-head h2{font-family:"STKaiti","KaiTi",serif;font-size:28px;letter-spacing:10px;text-indent:10px;font-weight:600}
+.study-sub{margin-top:8px;color:var(--soft);font-size:13px;letter-spacing:1px}
+.study-block{margin-top:22px}
+.blk-title{font-size:17px;letter-spacing:2px;font-weight:600;border-left:4px solid var(--accent);padding-left:10px;margin-bottom:14px}
+.smap{display:flex;flex-direction:column}
+.snode{display:flex;gap:14px;padding-bottom:16px;position:relative}
+.snode:last-child{padding-bottom:0}
+.snum{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-family:"STKaiti",serif;font-size:15px;display:flex;align-items:center;justify-content:center}
+.sbody{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.sname{font-size:16px;font-weight:600;letter-spacing:1px}
+.srange{font-size:12px;color:var(--accent-deep);background:var(--accent-bg);border:1px solid #e8c9c2;padding:1px 8px;border-radius:999px;margin-left:8px;white-space:nowrap}
+.sdesc{font-size:14.5px;line-height:1.95;color:#4a4438;text-align:justify;margin-top:6px}
+.skey{font-size:13px;color:var(--soft);margin-top:6px;line-height:1.8}
+.skey b{color:var(--accent-deep)}
+.cgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.concept{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.cterm{font-size:16px;font-weight:600;font-family:"STKaiti","KaiTi",serif;letter-spacing:1px}
+.cpy{font-size:12px;color:var(--accent-deep);font-family:"Songti SC",serif;margin-left:6px;font-weight:400}
+.cdef{font-size:14px;line-height:1.85;color:#4a4438;text-align:justify;margin-top:5px}
+.cchap{font-size:12px;color:var(--soft);margin-top:7px}
+.citem{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent);font-size:12px;margin-right:4px}
+.citem:hover{background:var(--accent-bg)}
+.qlist{list-style:none;margin:0;padding:0;columns:2;column-gap:24px}
+.qlist li{break-inside:avoid;margin-bottom:12px;font-size:15px;line-height:1.9;color:var(--ink);font-family:"STKaiti","KaiTi",serif}
+.qtext{color:var(--ink)}
+.qchap{font-size:12px;color:var(--soft);text-decoration:none;font-family:"Songti SC",serif}
+.qchap:hover{color:var(--accent);border-bottom:1px dotted var(--accent)}
+.study-nav{display:block;margin:10px 14px 4px;padding:9px 12px;background:var(--accent-bg);border:1px solid #e8c9c2;color:var(--accent-deep);text-decoration:none;border-radius:8px;font-size:13px;letter-spacing:1px;text-align:center}
+.study-nav:hover{background:#f2ddd6}
+
+/* 逐句对照（译文标签） */
+.sentences{display:flex;flex-direction:column}
+.srow{padding:10px 0;border-bottom:1px dashed var(--line)}
+.srow:last-child{border-bottom:none}
+.srow .src{font-size:16px;line-height:1.9;color:var(--ink);margin-bottom:4px}
+.srow .src ruby{font-weight:600}
+.srow .tr{font-size:14.5px;line-height:1.9;color:#4a4438;text-align:justify;text-indent:2em}
+
+/* ========== 分页阅读 ========== */
+.pager{display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin:24px 0 8px;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.pager-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+.pager .pager-info{flex:1;min-width:0;font-size:15px;font-family:"STKaiti","KaiTi",serif;letter-spacing:1px;color:var(--ink);text-align:center}
+.pager .btn{padding:8px 18px}
+.pager .btn:disabled{opacity:.4;cursor:not-allowed;border-color:var(--line);color:var(--soft);background:transparent}
+.cover{ }
+/* 分页：默认只显示当前视图，其余隐藏（无 JS 时 body 无 .paged，全部照常显示 = 连续单页） */
+body.paged .view{display:none}
+body.paged .view.active-view{display:block;animation:fade .25s}
+body.paged.view-chapter .pager{display:flex}
+@media (min-width:1024px){
+  body.paged .chapter.active-view{max-width:920px;margin-left:auto;margin-right:auto}
+}
+
+/* ========== 省察提问（章末） ========== */
+.sheng{margin:0;padding:0;list-style:none;counter-reset:sheng}
+.sheng li{position:relative;padding:10px 12px 10px 40px;margin:0 0 10px;background:var(--card);border:1px solid var(--line);border-radius:10px;line-height:1.85;color:var(--ink)}
+.sheng li:before{counter-increment:sheng;content:"省"counter(sheng);position:absolute;left:10px;top:10px;width:24px;height:24px;line-height:24px;text-align:center;font-size:12px;font-family:"STKaiti","KaiTi",serif;color:#fff;background:var(--accent);border-radius:50%}
+.sheng li:last-child{margin-bottom:0}
+
+/* ========== 参考书目 ========== */
+.bib{margin:0;padding:0;list-style:none}
+.bib li{padding:12px 14px;margin:0 0 12px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px}
+.bib .bname{display:block;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:4px;font-family:"STKaiti","KaiTi",serif}
+.bib li p{margin:0;font-size:14px;line-height:1.75;color:#4a4438;text-align:justify}
+
+/* ========== 人物小传 ========== */
+.figrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.fig{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.fig .fname{font-size:16px;font-weight:600;color:var(--ink);font-family:"STKaiti","KaiTi",serif}
+.fig .ftitle{font-size:13px;color:var(--accent);margin:2px 0 8px;font-weight:600}
+.fig p{margin:0;font-size:13.5px;line-height:1.7;color:#4a4438;text-align:justify}
+
+/* ========== 章间呼应表 ========== */
+.ech-wrap{overflow-x:auto}
+.ech{width:100%;border-collapse:collapse;font-size:14px;background:var(--card)}
+.ech caption{caption-side:top;text-align:left;font-size:13px;color:var(--soft);padding:0 0 8px}
+.ech th,.ech td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;line-height:1.6}
+.ech th{background:#f3ece0;color:var(--ink);font-weight:600;font-family:"STKaiti","KaiTi",serif;white-space:nowrap}
+.ech td.ck{white-space:nowrap;color:var(--accent);font-weight:600}
+.ech .citem{color:var(--accent);font-weight:600;text-decoration:none}
+.ech .citem:hover{text-decoration:underline}
+.ech .desc{color:#4a4438}
+
+@media (max-width:640px){
+  .ech{font-size:12.5px}
+  .ech th,.ech td{padding:6px 7px}
+}
+
+/* ========== 朱注（朱熹章句摘录，章末标签） ========== */
+.zz{margin:0;text-align:justify;text-indent:2em;line-height:2;font-size:15.5px;color:#3a342a}
+.zz:before{content:"朱子曰：";color:var(--accent-deep);font-weight:600}
+
+/* ========== 四书互参 ========== */
+.ssgrid{display:grid;grid-template-columns:1fr;gap:14px}
+.sscard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.sshead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.sszh{font-family:"STKaiti","KaiTi",serif;font-size:15px;font-weight:600;color:var(--accent)}
+.sstheme{font-size:13px;color:var(--soft)}
+.ssrefs{margin:0;padding:0;list-style:none}
+.ssrefs li{margin:0 0 10px;padding:8px 10px;background:var(--paper);border:1px solid var(--line);border-radius:8px;line-height:1.7}
+.ssrefs li:last-child{margin-bottom:0}
+.sbook{display:inline-block;font-size:12px;font-weight:600;color:#fff;background:var(--accent-deep);border-radius:5px;padding:1px 8px;margin-right:8px;vertical-align:middle}
+.spass{display:block;font-size:14.5px;color:var(--ink);font-family:"STKaiti","KaiTi",serif;margin:2px 0 3px}
+.snote{display:block;font-size:13px;color:#4a4438;text-align:justify}
+
+/* ========== 经证链（串讲内，以经典解经典） ========== */
+.jzchain{margin-top:14px;border:1px dashed var(--accent);border-radius:10px;background:var(--accent-bg);padding:10px 14px}
+.jzhead{font-size:13px;font-weight:600;color:var(--accent-deep);letter-spacing:1px;margin-bottom:8px}
+.jzlist{margin:0;padding:0;list-style:none}
+.jzlist li{margin:0 0 8px;line-height:1.65}
+.jzlist li:last-child{margin-bottom:0}
+.jzbook{display:inline-block;font-size:12px;font-weight:600;color:#fff;background:var(--accent-deep);border-radius:5px;padding:1px 8px;margin-right:8px;vertical-align:middle}
+.jzpass{display:block;font-size:14.5px;color:var(--ink);font-family:"STKaiti","KaiTi",serif;margin:2px 0 3px}
+.jznote{display:block;font-size:13px;color:#4a4438;text-align:justify}
+
+/* ========== 解读：所本经典（小字置于正文首行，随文换行） ========== */
+.jbody{flex:1;min-width:0}
+.jbasis{display:block;font-size:12px;color:var(--accent-deep);opacity:.75;letter-spacing:.5px;line-height:1.6;margin-bottom:4px}
+.jbasis:before{content:"";display:inline-block;width:14px;height:1px;background:var(--accent);vertical-align:middle;margin-right:7px;opacity:.6}
+
+/* ========== 朱注：章首句引标 ========== */
+.zz-head{font-size:13px;color:var(--soft);margin-bottom:6px;line-height:1.7}
+.zz-ref{color:var(--accent-deep);font-family:"STKaiti","KaiTi",serif}
+
+/* ========== 概念词典：经典互见 ========== */
+.occ{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.occ-head{font-size:12px;font-weight:600;color:var(--accent-deep);letter-spacing:1px;margin-bottom:5px}
+.occlist{margin:0;padding:0;list-style:none}
+.occlist li{margin:0 0 6px;line-height:1.6}
+.osent{display:block;font-size:13px;color:#4a4438;text-align:justify;font-family:"STKaiti","KaiTi",serif;margin-top:1px}
+
+/* ========== 名句：语境还原 ========== */
+.qctx{font-size:12.5px;color:var(--soft);line-height:1.7;text-align:justify;margin-top:4px;padding-left:10px;border-left:2px solid var(--line)}
+
+/* ========== 义理脊柱 ========== */
+.spine{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.spnode{display:flex;gap:12px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.spname{flex:none;font-size:15px;font-weight:700;color:#fff;background:var(--accent);border-radius:8px;padding:4px 10px;font-family:"STKaiti","KaiTi",serif;white-space:nowrap}
+.sprange{font-size:12px;color:var(--accent-deep);background:var(--accent-bg);border:1px solid #e8c9c2;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.spdesc{font-size:14px;line-height:1.8;color:#4a4438;text-align:justify;margin:4px 0 0;flex:1}
+.seg{display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--accent-deep);border-radius:5px;padding:1px 7px;margin-right:6px;vertical-align:middle}
+
+/* ========== 四书互参：逐章索引 ========== */
+.ssidx{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px}
+.ssidx-head{font-size:13px;font-weight:600;color:var(--accent-deep);letter-spacing:1px;margin-bottom:6px}
+.ssidxlist{margin:0;padding:0;list-style:none;columns:2;column-gap:20px}
+.ssidxlist li{break-inside:avoid;margin:0 0 5px;font-size:13.5px;line-height:1.6}
+.idxch{font-weight:600;color:var(--accent);margin-right:6px;font-family:"STKaiti","KaiTi",serif}
+
+/* ========== 以经解经专题 ========== */
+.topicgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.topic{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tname{font-size:17px;font-weight:700;color:var(--accent-deep);font-family:"STKaiti","KaiTi",serif;letter-spacing:1px;border-bottom:2px solid var(--accent);display:inline-block;padding-bottom:3px;margin-bottom:8px}
+.tdesc{font-size:13.5px;line-height:1.8;color:#4a4438;text-align:justify;margin:0 0 10px}
+.tlist{margin:0;padding:0;list-style:none}
+.tlist li{margin:0 0 9px;padding:7px 10px;background:var(--paper);border:1px solid var(--line);border-radius:8px;line-height:1.6}
+.tlist li:last-child{margin-bottom:0}
+.tsent{display:block;font-size:14px;color:var(--ink);font-family:"STKaiti","KaiTi",serif;margin:2px 0 3px}
+.tnote{display:block;font-size:12.5px;color:#4a4438;text-align:justify}
+
+/* ========== 引用与出处说明 ========== */
+.citebox{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.citebox p{margin:0 0 8px;font-size:14px;line-height:1.9;color:#4a4438;text-align:justify;text-indent:0}
+.citebox p:last-child{margin-bottom:0}
+.citebox ul{margin:0 0 8px;padding-left:20px}
+.citebox li{font-size:13.5px;line-height:1.9;color:#4a4438;margin-bottom:6px;text-align:justify}
+.citebox li:last-child{margin-bottom:0}
+
+/* ========== 我的践行笔记（省察面板） ========== */
+.sheng-wrap{margin:0}
+.sheng-note-box{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.sheng-lab{display:block;font-size:13px;color:var(--accent-deep);font-weight:600;letter-spacing:.5px;margin-bottom:6px}
+.sheng-count{display:inline-block;min-width:18px;color:var(--soft);font-weight:400}
+.sheng-note{width:100%;box-sizing:border-box;font:inherit;font-size:14.5px;line-height:1.8;color:var(--ink);
+  background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical;min-height:64px}
+.sheng-note:focus{outline:none;border-color:var(--accent)}
+
+/* ========== 今日安心签 ========== */
+.anshen-card{margin-top:14px;background:linear-gradient(135deg,var(--accent-bg),#fdf3ee);border:1px solid #eccfc6;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.anshen-label{font-size:12px;letter-spacing:2px;color:var(--accent-deep);font-weight:600}
+.anshen-text{font-family:"STKaiti","KaiTi",serif;font-size:19px;line-height:1.7;color:var(--ink);text-align:justify}
+.anshen-share{margin-top:2px}
+
+/* ========== {{BOOK}}与当代焦虑 ========== */
+.mxgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.mxcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.mxhead{margin-bottom:8px}
+.mxseg{display:inline-block;font-size:13px;font-weight:700;color:#fff;background:var(--accent);border-radius:6px;padding:2px 10px;font-family:"STKaiti","KaiTi",serif}
+.mxstress{margin:0 0 7px;font-size:13.5px;line-height:1.8;color:#4a4438;text-align:justify}
+.mxstress b{color:var(--accent-deep)}
+.mxremedy{margin:0 0 9px;font-size:14px;line-height:1.9;color:var(--ink);text-align:justify}
+.mxquote{margin:0;padding:8px 12px;border-left:3px solid var(--accent);background:var(--accent-bg);border-radius:0 8px 8px 0;
+  font-family:"STKaiti","KaiTi",serif;font-size:14.5px;color:var(--accent-deep);line-height:1.7}
+.study-foot{margin-top:18px;text-align:center}
+.study-foot .hint{margin-left:10px;font-size:12px;color:var(--soft)}
+
+/* ========== 工具箱面板（统一收纳系统功能） ========== */
+.tools-mask{position:fixed;inset:0;background:rgba(40,32,18,.4);z-index:300;display:none}
+.tools-mask.open{display:block}
+.tools-panel{position:fixed;z-index:310;background:var(--card);border:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.18);
+  left:0;right:0;bottom:0;max-width:520px;margin:0 auto;padding:0 16px calc(16px + env(safe-area-inset-bottom));display:none;flex-direction:column;gap:6px;
+  max-height:calc(100vh - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tools-panel.open{display:flex}
+.tp-head{position:sticky;top:0;z-index:2;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:13px 2px 10px;border-bottom:1px solid var(--line);font-family:"STKaiti","KaiTi",serif;font-size:18px;color:var(--accent-deep);letter-spacing:2px}
+.tp-close{flex:none;width:34px;height:34px;margin:-4px -6px 0 0;background:none;border:0;font-size:24px;color:var(--soft);cursor:pointer;line-height:1;border-radius:50%}
+.tp-close:active{background:var(--accent-bg)}
+.tp-sec{margin-top:6px}
+.tp-sec-t{font-size:13px;font-weight:700;color:var(--ink);margin:8px 0 6px;letter-spacing:.5px}
+.tp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;font-size:14.5px;color:var(--ink)}
+.tp-row .hint{font-size:12px;color:var(--soft)}
+.tp-status{font-size:13px;color:var(--soft);padding:2px 0 6px}
+.tp-status.ok{color:var(--accent-deep)}
+.tp-note{font-size:12px;color:var(--soft);line-height:1.6;margin-top:8px}
+.btn.block{display:block;width:100%;margin-top:8px;text-align:center}
+.btn:disabled, .btn.block:disabled{opacity:.5;cursor:not-allowed;background:#efe7d5;color:var(--soft);border-color:var(--line)}
+.btn.block:disabled:hover{background:#efe7d5}
+/* PC（≥1024px）：工具箱改为右上角下拉面板 */
+@media (min-width:1024px){
+  .tools-panel{left:auto;right:14px;bottom:auto;top:64px;width:300px;max-width:300px;margin:0;border-radius:16px;box-shadow:0 10px 36px rgba(0,0,0,.18)}
+}
+/* 践行笔记：纯本机存储，无需登录 */
+
+/* ========== 响应式收尾（必须位于基础规则之后，否则同优先级会被覆盖） ========== */
+/* 研读页双栏内容：小于 880px 一律单列（覆盖手机 / 平板 / 分屏预览等中间宽度） */
+@media (max-width:880px){
+  .cgrid{grid-template-columns:1fr}
+  .qlist{columns:1}
+  .figrid{grid-template-columns:1fr}
+  .ssidxlist{columns:1}
+  .topicgrid{grid-template-columns:1fr}
+  .mxgrid{grid-template-columns:1fr}
+  .spnode{flex-direction:column;gap:6px}
+}
+/* 解读面板：窄屏改为上下堆叠，学派名在上方，不再让左侧标签列挤占正文宽度 */
+@media (max-width:640px){
+  .jrow{flex-direction:column;gap:6px;padding:12px 0}
+  .jlabel{align-self:flex-start;min-width:0;padding:4px 10px;font-size:12.5px}
+  .jrow p{font-size:14.5px;line-height:1.85}
+  .jintro{margin-bottom:8px}
+}
+/* PC（≥1024px）左侧常驻目录栏，顶栏不再显示「目录」按钮（移动端保留，用于开抽屉） */
+@media (min-width:1024px){
+  .topbar .desk-hide{display:none}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="brand">{{BOOK}}<small>共读</small></div>
+      <div class="sidebar-sub">目 录 · {{TOTAL_CN}}章</div>
+    </div>
+    <a href="#study" class="study-nav">研读 · 脉络 / 概念 / 名句</a>
+    <details class="toc-details" id="tocDetails" open>
+      <summary>目 录 · {{TOTAL_CN}}章</summary>
+      <nav class="toc" id="toc">
+        <ol id="tocList">
+__TOC_ITEMS__
+        </ol>
+      </nav>
+    </details>
+    <div class="sidebar-foot">{{SIDEBAR_FOOT}}</div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">{{BOOK}}<small>共读</small></div>
+        <div class="top-actions">
+          <button class="btn ghost nav-btn act-home" id="homeBtn" title="回到首页 / 封面">首页</button>
+          <button class="btn ghost nav-btn act-study" id="studyBtn" title="研读专区">研读</button>
+          <button class="btn nav-btn act-today" id="todayBtn" title="跳到今日共读章节">今日<span class="tlong">共读</span></button>
+          <button class="btn ghost nav-btn act-toc desk-hide" id="tocBtn">目录</button>
+          <span class="top-spacer"></span>
+          <button class="btn ghost" id="toolsBtn" title="工具箱：阅读设置 / 共读设置 / 分享">工具箱</button>
+        </div>
+      </div>
+
+    </header>
+
+    <div class="tools-mask" id="toolsMask"></div>
+    <div class="tools-panel" id="toolsPanel" role="dialog" aria-label="工具箱">
+      <div class="tp-head"><span>工具箱</span><button class="tp-close" id="toolsClose" type="button" aria-label="关闭">×</button></div>
+
+      <div class="tp-sec">
+        <div class="tp-sec-t">我的践行笔记</div>
+        <button class="btn block" id="exportSheng" type="button">导出我的 __TOTAL__ 天自省</button>
+        <div class="tp-note">笔记与导出都只保存在当前浏览器，不会上传云端。清除缓存、更换设备或浏览器后将不可见，建议定期导出备份。</div>
+        <div class="tp-note" id="exportTip"></div>
+      </div>
+
+      <div class="tp-sec">
+        <div class="tp-sec-t">阅读设置</div>
+        <div class="tp-row"><span>疑难字注音</span><button class="btn ghost on py-toggle" id="pyBtn" type="button">开</button></div>
+        <div class="tp-row"><span id="modeState">分页阅读</span><button class="btn ghost mode-toggle" id="modeBtn" type="button">切换为连续阅读</button></div>
+      </div>
+
+      <div class="tp-sec">
+        <div class="tp-sec-t">共读设置</div>
+        <div class="tp-row"><span>开始日期</span><input type="date" id="startDate" class="tp-date"></div>
+        <div class="tp-note">改日期自动跳到对应章节</div>
+      </div>
+
+      <div class="tp-sec">
+        <div class="tp-sec-t">今日安心签</div>
+        <div class="tp-anshen" id="tpAnshenText"></div>
+        <button class="btn block ghost" id="shareAnshen" type="button">分享这句</button>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <section class="cover view" data-view="cover" id="cover">
+      <section class="hero">
+        <h1>{{BOOK}}</h1>
+        <p class="sub">《礼记》第三十一篇 · 子思撰 · 四书之一</p>
+        <div class="rule"></div>
+        <p class="intro">{{INTRO}}</p>
+      </section>
+
+      <section class="plan">
+        <div class="plan-head">
+          <h2>今日共读</h2>
+          <span class="chip" id="dayChip">第 1 / 33 天</span>
+        </div>
+        <div class="plan-body">
+          <p class="today-line" id="todayLine">第一章 · 天命之谓性</p>
+          <div class="progress"><i id="progressBar"></i></div>
+          <div class="plan-actions">
+            <span class="plan-date">开始日期：<b id="planDateLabel"></b></span>
+            <span class="hint">在「工具箱 · 共读设置」中修改</span>
+            <span class="spacer"></span>
+            <button class="btn" id="resumeBtn" hidden>继续阅读</button>
+            <button class="btn" id="jumpBtn">跳到本章</button>
+          </div>
+          <div class="anshen-card" id="anshenCard">
+            <div class="anshen-label">今日安心签</div>
+            <div class="anshen-text" id="anshenText"></div>
+            <button class="btn ghost anshen-share" id="anshenShare" type="button">分享这句</button>
+          </div>
+          <noscript><p class="noscript-tip" style="display:block">当前环境未启用脚本：目录跳转与全文阅读可正常使用，「今日共读」定位与「分享本章」链接不可用。</p></noscript>
+        </div>
+      </section>
+      </section>
+
+__STUDY_HTML__
+
+      <section id="chapters">
+__CHAPTERS_HTML__
+      </section>
+
+      <nav class="pager" id="pager">
+        <div class="pager-row">
+          <button class="btn ghost" id="prevCh" aria-label="上一章">← 上一章</button>
+          <span class="pager-info" id="pagerInfo"></span>
+          <button class="btn" id="nextCh" aria-label="下一章">下一章 →</button>
+        </div>
+      </nav>
+
+      <footer>
+        <p>文本依据：朱熹《四书章句集注 · {{BOOK}}章句》{{TOTAL_CN}}章，并与《礼记 · {{BOOK}}》原文交叉校对。</p>
+        <p>{{BOOK}}共读 · 一天一章 · {{TOTAL_CN}}天</p>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div id="tocBackdrop"></div>
+<nav class="bottom-nav" id="bottomNav" aria-label="底部导航">
+  <button class="bn-item act-home">首页</button>
+  <button class="bn-item act-study">研读</button>
+  <button class="bn-item act-today">今日</button>
+  <button class="bn-item act-toc">目录</button>
+  <button class="bn-item act-tools" id="toolsBtnBottom">工具箱</button>
+</nav>
+<button class="backtop" id="backTop" title="回到顶部">顶</button>
+<div class="toast" id="toast"></div>
+<script>
+var CHAPTERS = __DATA__;
+var TOTAL = __TOTAL__;
+var CN = __CN__;
+var ANSHEN = __ANSHEN__;
+var SHENGQ = __SHENGQ__;
+var LS_KEY = '{{KEY}}_start_v1';
+var PAGED = true;          /* 默认分页阅读 */
+var CURRENT = 1;           /* 当前阅读章号（封面/研读时仍记录上次章） */
+function currentChapter(){ return CURRENT; }
+
+/* 阅读进度书签：记住最后读到的章，目录标灰已读，封面提供「继续阅读」 */
+var LAST_KEY = '{{KEY}}_last_v1';
+var lastRead = parseInt(lsGet(LAST_KEY) || '0', 10) || 0;
+function markReadToc(){
+  var links = document.querySelectorAll('.toc a');
+  for (var i = 0; i < links.length; i++) {
+    links[i].classList.toggle('read', +links[i].getAttribute('data-n') <= lastRead);
+  }
+  var rb = document.getElementById('resumeBtn');
+  if (rb) {
+    if (lastRead > 0) { rb.hidden = false; rb.textContent = '继续阅读 · 第' + CN[lastRead - 1] + '章'; }
+    else { rb.hidden = true; }
+  }
+}
+
+function $(s){ return document.querySelector(s); }
+function eachNode(list, fn){ for (var i = 0; i < list.length; i++) { fn(list[i], i); } }
+/* 浏览器本地缓存开始日期：优先 localStorage，沙箱/隐私模式不可用时回退到 cookie，
+   确保「今日共读」设置不会每次重置 */
+function lsGet(k){
+  try { var v = window.localStorage.getItem(k); if (v) { return v; } } catch (e) {}
+  try { var m = document.cookie.match(new RegExp('(?:^|; )' + k + '=([^;]*)')); if (m) { return decodeURIComponent(m[1]); } } catch (e) {}
+  return null;
+}
+function lsSet(k, v){
+  try { window.localStorage.setItem(k, v); } catch (e) {}
+  try { document.cookie = k + '=' + encodeURIComponent(v) + ';path=/;max-age=31536000'; } catch (e) {}
+}
+/* 老版本 WebView 不支持带选项的 scrollIntoView */
+function scrollToEl(el, center){
+  try { el.scrollIntoView(center ? { behavior: 'smooth', block: 'center' } : { behavior: 'smooth', block: 'start' }); }
+  catch (e) { try { el.scrollIntoView(); } catch (e2) {} }
+}
+/* 受控缓动滚动：固定时长(默认500ms)到位，避免全局 scroll-behavior:smooth 在超长文档上“长距离爬行”数秒；
+   behavior:'auto' 覆盖 CSS 平滑，由 rAF 自行插值，结果稳定可测 */
+function easeScrollTo(top, duration){
+  duration = duration || 500;
+  top = Math.max(0, Math.round(top));
+  var start = window.scrollY || window.pageYOffset || 0;
+  var dist = top - start;
+  if (Math.abs(dist) < 2) { return; }
+  var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+  var step = function(now){
+    var p = Math.min(1, (now - t0) / duration);
+    var e = 1 - Math.pow(1 - p, 3); /* easeOutCubic */
+    try { window.scrollTo({ top: start + dist * e, behavior: 'auto' }); }
+    catch (err) { window.scrollTo(0, start + dist * e); }
+    if (p < 1) { (window.requestAnimationFrame || setTimeout)(step); }
+  };
+  (window.requestAnimationFrame || function(f){ return setTimeout(function(){ f((window.performance&&performance.now)?performance.now():Date.now()); }, 16); })(step);
+}
+function isWide(){ try { return window.matchMedia('(min-width:1024px)').matches; } catch (e) { return false; } }
+function pad(n){ return (n < 10 ? '0' : '') + n; }
+function dateStr(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseDate(s){ var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function fmtCN(d){ return (d.getMonth() + 1) + '月' + d.getDate() + '日'; }
+function addDays(s, n){ var d = parseDate(s); d.setDate(d.getDate() + n); return d; }
+
+var startDate = lsGet(LS_KEY);
+if (!startDate) { startDate = dateStr(new Date()); }
+
+function dayIndex(){
+  var t = parseDate(dateStr(new Date()));
+  var s = parseDate(startDate);
+  return Math.round((t - s) / 86400000) + 1;
+}
+
+/* 刷新目录中的日程日期 */
+function refreshTocDates(){
+  var ds = document.querySelectorAll('.toc .d');
+  for (var i = 0; i < ds.length && i < TOTAL; i++) {
+    ds[i].textContent = '第' + (i + 1) + '天 · ' + fmtCN(addDays(startDate, i));
+  }
+}
+
+/* 今日共读状态：徽章 / 本章 / 进度 / 目录高亮 */
+function updateToday(){
+  var idx = dayIndex();
+  var d = Math.max(1, Math.min(TOTAL, idx));
+  var notStarted = idx < 1;
+  var done = idx > TOTAL;
+  $('#dayChip').textContent = done ? '33 / 33 天 · 已完成'
+    : (notStarted ? '共读未开始' : '第 ' + idx + ' / ' + TOTAL + ' 天');
+  $('#todayLine').innerHTML = done ? '{{TOTAL_CN}}天已通读完毕 · 温故而知新'
+    : (notStarted ? '共读尚未开始 · 首日从第一章读起'
+       : '第' + CN[d - 1] + '章 · ' + CHAPTERS[d - 1].label);
+  $('#progressBar').style.width = (done ? 100 : d / TOTAL * 100) + '%';
+  var links = document.querySelectorAll('.toc a');
+  for (var i = 0; i < links.length; i++) {
+    links[i].classList.toggle('today', !done && +links[i].getAttribute('data-n') === d);
+  }
+  refreshAnshen(d);
+}
+
+/* 我的践行笔记：按章存本机，载入即回填；导出为 33 天自省文本 */
+var SHENG_KEY = '{{KEY}}_sheng_';
+function shengKey(n){ return SHENG_KEY + n; }
+function loadShengNotes(){
+  var tas = document.querySelectorAll('.sheng-note');
+  for (var i = 0; i < tas.length; i++) {
+    var ta = tas[i];
+    var n = ta.getAttribute('data-n');
+    var v = '';
+    try { v = window.localStorage.getItem(shengKey(n)) || ''; } catch (e) {}
+    ta.value = v;
+    var cnt = document.getElementById('shengCount-' + n);
+    if (cnt) { cnt.textContent = v.length; }
+  }
+}
+function bindShengNotes(){
+  document.addEventListener('input', function(e){
+    var ta = e.target;
+    if (!ta || ta.className !== 'sheng-note') { return; }
+    var n = ta.getAttribute('data-n');
+    try { window.localStorage.setItem(shengKey(n), ta.value); } catch (err) {}
+    var cnt = document.getElementById('shengCount-' + n);
+    if (cnt) { cnt.textContent = ta.value.length; }
+  });
+}
+function exportSheng(){
+  var tip = document.getElementById('exportTip');
+  var lines = ['《{{BOOK}}》我的 __TOTAL__ 天自省', '（生成于 ' + dateStr(new Date()) + '）', ''];
+  for (var n = 1; n <= TOTAL; n++) {
+    var qs = (SHENGQ[String(n)] || []);
+    var note = '';
+    try { note = window.localStorage.getItem(shengKey(n)) || ''; } catch (e) {}
+    if (!qs.length && !note.trim()) { continue; }
+    lines.push('第' + CN[n - 1] + '章 · ' + (CHAPTERS[n - 1] ? CHAPTERS[n - 1].label : ''));
+    for (var i = 0; i < qs.length; i++) { lines.push('  自省问：' + qs[i]); }
+    lines.push('  我的笔记：' + (note.trim() || '（未写）'));
+    lines.push('');
+  }
+  var text = lines.join('\n');
+  try {
+    var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = '{{BOOK}}_我的' + TOTAL + '天自省.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ try { URL.revokeObjectURL(url); } catch (e) {} }, 1000);
+    if (tip) { tip.textContent = '已导出 ' + (lines.length) + ' 行（仅含你写的内容）'; }
+  } catch (e) {
+    if (tip) { tip.textContent = '当前环境不支持下载，已复制到剪贴板'; }
+    copyText(text);
+  }
+}
+
+/* 今日安心签：按今日章（或当前章）取一句，可分享 */
+function refreshAnshen(chapter){
+  var el = document.getElementById('anshenText');
+  if (!el) { return; }
+  var n = (typeof chapter === 'number' && chapter >= 1 && chapter <= TOTAL) ? chapter : Math.max(1, Math.min(TOTAL, dayIndex()));
+  var txt = (ANSHEN && ANSHEN[n - 1]) ? ANSHEN[n - 1] : '';
+  el.textContent = txt;
+  el.setAttribute('data-n', n);
+  var tp = document.getElementById('tpAnshenText');
+  if (tp) { tp.textContent = txt; tp.setAttribute('data-n', n); }
+}
+function shareAnshen(){
+  var el = document.getElementById('anshenText');
+  if (!el) { return; }
+  var txt = el.textContent.trim();
+  if (!txt) { return; }
+  var n = el.getAttribute('data-n') || '1';
+  var base = SHARE_BASE || ((location.origin || '') + (location.pathname || ''));
+  var link = base ? (base.replace(/\/$/, '') + '#ch-' + n) : '';
+  copyText('【今日安心签】《{{BOOK}}·第' + CN[n - 1] + '章》\n' + txt + (link ? '\n' + link : ''));
+}
+
+/* 跳到今日共读章节 */
+function jumpToday(){
+  var d = Math.max(1, Math.min(TOTAL, dayIndex()));
+  if (PAGED) { showChapter(d); return; }
+  var el = document.getElementById('ch-' + d);
+  if (!el) { return; }
+  scrollToEl(el);
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+  try { history.replaceState(null, '', '#ch-' + d); } catch (e) {}
+}
+
+/* 让目录栏滚动到当前章节（宽屏）或展开目录（窄屏） */
+function revealTocActive(){
+  var dd = document.getElementById('tocDetails');
+  if (dd && !dd.open) { dd.open = true; }
+  var act = document.querySelector('.toc a.active') || document.querySelector('.toc a');
+  if (act) { scrollToEl(act, true); }
+}
+
+function chapterCopyText(n){
+  var c = CHAPTERS[n - 1];
+  var t = c.paras ? c.paras.join('\n') : c.text;
+  return '《{{BOOK}}》第' + CN[n - 1] + '章（' + c.label + '）\n\n' + t;
+}
+
+function copyText(t){
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(function(){ toast('已复制，去群里粘贴吧'); }, function(){ legacyCopy(t); });
+  } else { legacyCopy(t); }
+}
+function legacyCopy(t){
+  var ta = document.createElement('textarea');
+  ta.value = t;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('已复制，去群里粘贴吧'); }
+  catch (e) { toast('复制失败，请手动选择文本'); }
+  document.body.removeChild(ta);
+}
+
+var toastTimer = null;
+function toast(msg, ms){
+  var el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, ms || 1800);
+}
+
+/* 分享本章：优先调用系统分享面板（移动端），否则复制带 #ch-N 的直达链接。
+   固定输出公开站点地址 SHARE_BASE：书友打开即直达本章，无需登录。
+   若将来更换/下线了公开站点，改这里即可；留空则回退为当前页面地址。 */
+var SHARE_BASE = '__SHARE_BASE__';
+function shareChapter(n){
+  n = Math.max(1, Math.min(TOTAL, n));
+  var base = SHARE_BASE || ((location.origin || '') + (location.pathname || ''));
+  var url = base + '#ch-' + n;
+  var title = '《{{BOOK}}》第' + CN[n - 1] + '章 · ' + CHAPTERS[n - 1].label;
+  /* 先把地址栏同步为该章（replaceState 不产生历史记录）：
+     个别浏览器/WebView 的系统分享会忽略传入 url、改用当前页面地址，
+     同步后即使走这条路，分享出去的也一定是带 #ch-N 的直达链接。 */
+  try { history.replaceState(null, '', '#ch-' + n); } catch (e) {}
+  if (navigator.share) {
+    navigator.share({ title: title, text: title, url: url }).catch(function (err) {
+      /* 用户主动取消（AbortError）不打扰；其余失败（权限被拒、iframe 内被禁等）回退为复制 */
+      if (err && err.name === 'AbortError') { return; }
+      copyText(url);
+      toast('已复制本章链接，分享即可直达');
+    });
+    return;
+  }
+  copyText(url);
+  toast('已复制本章链接，分享即可直达');
+}
+
+$('#todayBtn').addEventListener('click', jumpToday);
+/* 继续阅读：回到上次读到的章（分页切视图 / 连续滚动定位） */
+var resumeBtn = document.getElementById('resumeBtn');
+if (resumeBtn) {
+  resumeBtn.addEventListener('click', function(){
+    var n = Math.max(1, Math.min(TOTAL, lastRead || 1));
+    if (PAGED) { showChapter(n); return; }
+    var el = document.getElementById('ch-' + n);
+    if (!el) { return; }
+    scrollToEl(el);
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  });
+}
+$('#jumpBtn').addEventListener('click', jumpToday);
+/* 窄屏抽屉打开后：把目录滚动到当前章（分页取 CURRENT，连续取 scroll-spy 高亮，均兜底为今日章） */
+function revealTocMobile(){
+  var dd = document.getElementById('tocDetails');
+  if (dd && !dd.open) { dd.open = true; }
+  var act = document.querySelector('.toc a.active');
+  if (!act) {
+    var dn = (typeof CURRENT === 'number' && CURRENT >= 1) ? CURRENT : Math.max(1, Math.min(TOTAL, dayIndex()));
+    act = document.querySelector('.toc a[data-n="' + dn + '"]');
+  }
+  var sc = document.querySelector('.sidebar');
+  if (!act || !sc) { return; }
+  var doScroll = function(){
+    try {
+      var er = act.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+      /* 垂直方向不受抽屉水平滑入动画影响，可立即计算；动画结束后再校准一次 */
+      sc.scrollTop += er.top - sr.top - (sr.height - er.height) / 2;
+    } catch (e) {}
+  };
+  doScroll();
+  setTimeout(doScroll, 300);
+}
+/* 目录按钮：宽屏滚动目录到当前章；窄屏开/关抽屉（打开时顺带滚动到当前章） */
+function toggleToc(force){
+  var open = (typeof force === 'boolean') ? force : !document.body.classList.contains('toc-open');
+  document.body.classList.toggle('toc-open', open);
+  eachNode(document.querySelectorAll('.act-toc'), function(el){ el.classList.toggle('active', open); });
+  if (open && !isWide()) { revealTocMobile(); }
+}
+$('#tocBtn').addEventListener('click', function(){
+  if (isWide()) { revealTocActive(); } else { toggleToc(); }
+});
+$('#tocBackdrop').addEventListener('click', function(){ document.body.classList.remove('toc-open'); });
+/* 注音开关（顶栏 + 抽屉工具区两处按钮，状态同步） */
+function syncPy(){
+  var on = !document.body.classList.contains('no-py');
+  var bs = document.querySelectorAll('.py-toggle');
+  for (var i = 0; i < bs.length; i++) { bs[i].classList.toggle('on', on); bs[i].textContent = on ? '开' : '关'; }
+}
+(function(){
+  var bs = document.querySelectorAll('.py-toggle');
+  for (var i = 0; i < bs.length; i++) {
+    (function(b){
+      b.addEventListener('click', function(){
+        document.body.classList.toggle('no-py');
+        syncPy();
+      });
+    })(bs[i]);
+  }
+  syncPy();
+})();
+/* 首页 / 研读：分页模式切换视图；连续模式平滑滚动到对应区 */
+$('#homeBtn').addEventListener('click', function(){
+  if (PAGED) { showCover(); } else { var c = document.getElementById('cover'); if (c) scrollToEl(c); }
+});
+$('#studyBtn').addEventListener('click', function(){
+  if (PAGED) { showStudy(); } else { var s = document.getElementById('study'); if (s) scrollToEl(s); }
+});
+/* 底部 tab 栏（移动端）：与顶栏导航同逻辑 */
+eachNode(document.querySelectorAll('.bn-item'), function(el){
+  el.addEventListener('click', function(){
+    if (el.classList.contains('act-home')) {
+      if (PAGED) { showCover(); } else { var c = document.getElementById('cover'); if (c) scrollToEl(c); }
+    } else if (el.classList.contains('act-study')) {
+      if (PAGED) { showStudy(); } else { var s = document.getElementById('study'); if (s) scrollToEl(s); }
+    } else if (el.classList.contains('act-today')) {
+      jumpToday();
+    } else if (el.classList.contains('act-toc')) {
+      if (isWide()) { revealTocActive(); } else { toggleToc(); }
+    }
+  });
+});
+
+document.addEventListener('click', function(e){
+  var t = e.target;
+  /* 通假/异读虚线字：点击弹出说明（悬浮 title 同文案），注明「某通某」及含义 */
+  var tj = t.closest ? t.closest('ruby.tj') : null;
+  if (tj) {
+    toast(tj.getAttribute('title') || '', 4200);
+    return;
+  }
+  /* 解读面板：点击学派名展开/收起简介 */
+  var jl = t.closest ? t.closest('.jlabel') : null;
+  if (jl) {
+    var jr = jl.closest('.jrow');
+    if (jr) {
+      var jopen = !jr.classList.contains('jopen');
+      jr.classList.toggle('jopen', jopen);
+      jl.setAttribute('aria-expanded', jopen ? 'true' : 'false');
+    }
+    return;
+  }
+  /* 章节详解：切换 译文/注释/串讲/解读/导读 标签页 */
+  var tab = t.closest ? t.closest('.tab-btn') : null;
+  if (tab) {
+    var art = tab.closest('.chapter');
+    if (art) {
+      var name = tab.getAttribute('data-tab');
+      var btns = art.querySelectorAll('.tab-btn');
+      for (var i = 0; i < btns.length; i++) { btns[i].classList.toggle('active', btns[i] === tab); }
+      var pans = art.querySelectorAll('.panel');
+      for (var j = 0; j < pans.length; j++) { pans[j].classList.toggle('active', pans[j].getAttribute('data-panel') === name); }
+    }
+    return;
+  }
+  /* 页面内跳转链接：分页模式下接管为「切换视图」；连续模式下交给原生锚点 */
+  var ha = t.closest ? t.closest('a[href^="#"]') : null;
+  if (ha && PAGED) {
+    var hid = ha.getAttribute('href');
+    if (hid === '#study') { e.preventDefault(); showStudy(); return; }
+    if (hid === '#cover') { e.preventDefault(); showCover(); return; }
+    if (/^#ch-\d+$/.test(hid)) {
+      e.preventDefault();
+      var nn = parseInt(hid.slice(4), 10);
+      if (!isWide()) { document.body.classList.remove('toc-open'); }
+      showChapter(nn);
+      return;
+    }
+  }
+  /* 回到目录 */
+  var back = t.closest ? t.closest('a[href="#toc"]') : null;
+  if (back) {
+    if (isWide()) {
+      e.preventDefault();
+      revealTocActive();
+    } else {
+      e.preventDefault();
+      toggleToc(true);
+    }
+    return;
+  }
+  var b = t.closest ? t.closest('.share-btn') : null;
+  if (b) { shareChapter(+b.getAttribute('data-n')); }
+});
+
+/* 修改开始日期：刷新日程并直接跳到对应章节；输入即时缓存到浏览器本地 */
+$('#startDate').value = startDate;
+var planDate0 = document.getElementById('planDateLabel');
+if (planDate0) { planDate0.textContent = startDate; }
+function onStartChange(){
+  var v = $('#startDate').value;
+  if (!v) { return; }
+  startDate = v;
+  lsSet(LS_KEY, v);
+  var pd = document.getElementById('planDateLabel');
+  if (pd) { pd.textContent = startDate; }
+  refreshTocDates();
+  updateToday();
+  jumpToday();
+  var idx = dayIndex();
+  var msg = idx < 1 ? '共读未开始，已定位到第一章'
+    : (idx > TOTAL ? '已通读完毕，定位到最后一章' : '已记住开始日期，定位到第 ' + idx + '章');
+  toast(msg);
+}
+$('#startDate').addEventListener('change', onStartChange);
+$('#startDate').addEventListener('input', onStartChange);
+
+/* 滚动联动：正文滚到哪一章，目录就高亮该项，并把目录栏滚动到对应位置（仅宽屏） */
+var spyCurrent = 0;
+var spyRaf = null;
+var raf = window.requestAnimationFrame || function(f){ return setTimeout(f, 16); };
+function chapterAtViewport(){
+  var arts = document.querySelectorAll('article.chapter');
+  if (!arts.length) { return 1; }
+  /* 已滚到页面底部：最后一章无法再抬到顶部，直接视为当前章 */
+  var sc = (document.documentElement || document.body);
+  var scrollBottom = window.scrollY + window.innerHeight;
+  if (scrollBottom >= sc.scrollHeight - 4) { return arts.length; }
+  var n = 1;
+  for (var i = 0; i < arts.length; i++) {
+    if (arts[i].getBoundingClientRect().top <= 140) { n = i + 1; } else { break; }
+  }
+  return n;
+}
+function scrollSidebarTo(el){
+  try {
+    var sc = document.querySelector('.sidebar');
+    if (!sc || !el) { return; }
+    var er = el.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+    if (er.top < sr.top + 4 || er.bottom > sr.bottom - 4) {
+      sc.scrollTop += er.top - sr.top - (sr.height - er.height) / 2;
+    }
+  } catch (e) {}
+}
+function markActive(n){
+  var links = document.querySelectorAll('.toc a');
+  for (var i = 0; i < links.length; i++) {
+    links[i].classList.toggle('active', +links[i].getAttribute('data-n') === n);
+  }
+  if (isWide()) {
+    scrollSidebarTo(document.querySelector('.toc a[data-n="' + n + '"]'));
+  }
+}
+function onScrollSpy(){
+  if (PAGED) { return; }
+  if (spyRaf) { return; }
+  spyRaf = raf(function(){
+    spyRaf = null;
+    var n = chapterAtViewport();
+    if (n !== spyCurrent) { spyCurrent = n; markActive(n); }
+  });
+}
+window.addEventListener('scroll', function(){
+  $('#backTop').classList.toggle('show', window.scrollY > 600);
+  onScrollSpy();
+}, { passive: true });
+$('#backTop').addEventListener('click', function(){
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* 目录详情始终展开（宽屏在侧栏、窄屏在抽屉中均需可见） */
+function syncTocDetails(){
+  var dd = document.getElementById('tocDetails');
+  if (dd) { dd.open = true; }
+}
+syncTocDetails();
+window.addEventListener('resize', syncTocDetails);
+
+/* ===== 分页阅读：视图切换 ===== */
+/* 当前页高亮：封面→首页；研读→研读；章节→若恰为今日则高亮「今日」；目录仅在抽屉打开时高亮 */
+function setNavActive(name, n){
+  eachNode(document.querySelectorAll('.nav-btn, .bn-item'), function(el){ el.classList.remove('active'); });
+  if (name === 'cover' || name === 'study') {
+    var cls = (name === 'cover') ? 'act-home' : 'act-study';
+    eachNode(document.querySelectorAll('.' + cls), function(el){ el.classList.add('active'); });
+  } else if (name === 'ch') {
+    if (n === Math.max(1, Math.min(TOTAL, dayIndex()))) {
+      eachNode(document.querySelectorAll('.act-today'), function(el){ el.classList.add('active'); });
+    }
+  }
+}
+function setView(name, n){
+  var views = document.querySelectorAll('.view');
+  for (var i = 0; i < views.length; i++) { views[i].classList.remove('active-view'); }
+  if (name === 'cover') {
+    var cov = document.getElementById('cover'); if (cov) { cov.classList.add('active-view'); }
+    document.body.classList.remove('view-chapter');
+  } else if (name === 'study') {
+    var st = document.getElementById('study'); if (st) { st.classList.add('active-view'); }
+    document.body.classList.remove('view-chapter');
+  } else {
+    var el = document.getElementById('ch-' + n);
+    if (el) { el.classList.add('active-view'); }
+    document.body.classList.add('view-chapter');
+    updatePager(n);
+  }
+  setNavActive(name, n);
+  try { window.scrollTo(0, 0); } catch (e2) {}
+}
+function updatePager(n){
+  var info = document.getElementById('pagerInfo');
+  if (info) { info.innerHTML = '第' + CN[n - 1] + '章<span class="psep"> · </span><span class="plabel">' + CHAPTERS[n - 1].label + '</span>'; }
+  var prev = document.getElementById('prevCh'), next = document.getElementById('nextCh');
+  if (prev) { prev.disabled = (n <= 1); }
+  if (next) { next.disabled = (n >= TOTAL); }
+}
+function showCover(){ setView('cover'); try { history.replaceState(null, '', '#cover'); } catch (e) {} }
+function showStudy(){ setView('study'); try { history.replaceState(null, '', '#study'); } catch (e) {} }
+function showChapter(n, keepHash){
+  n = Math.max(1, Math.min(TOTAL, n));
+  CURRENT = n;
+  setView('ch', n);
+  markActive(n);
+  if (n > lastRead) { lastRead = n; lsSet(LAST_KEY, String(n)); }
+  markReadToc();
+  if (keepHash !== false) { try { history.replaceState(null, '', '#ch-' + n); } catch (e) {} }
+}
+
+/* 翻页按钮（上一章 / 下一章） */
+var pPrev = document.getElementById('prevCh'), pNext = document.getElementById('nextCh');
+if (pPrev) { pPrev.addEventListener('click', function(){ if (CURRENT > 1) { showChapter(CURRENT - 1); } }); }
+if (pNext) { pNext.addEventListener('click', function(){ if (CURRENT < TOTAL) { showChapter(CURRENT + 1); } }); }
+
+/* 模式切换：分页 <-> 连续阅读（顶栏 + 抽屉工具区两处按钮，状态同步） */
+function syncMode(){
+  var state = document.getElementById('modeState');
+  var ts = document.querySelectorAll('.mode-toggle');
+  for (var i = 0; i < ts.length; i++) { ts[i].textContent = PAGED ? '切换为连续阅读' : '切换为分页阅读'; }
+  if (state) { state.textContent = PAGED ? '分页阅读' : '连续阅读'; }
+}
+(function(){
+  var ts = document.querySelectorAll('.mode-toggle');
+  for (var i = 0; i < ts.length; i++) {
+    (function(b){
+      b.addEventListener('click', function(){
+        PAGED = !PAGED;
+        document.body.classList.toggle('paged', PAGED);
+        if (!PAGED) {
+          var vs = document.querySelectorAll('.view');
+          for (var j = 0; j < vs.length; j++) { vs[j].classList.add('active-view'); }
+          document.body.classList.remove('view-chapter');
+        } else {
+          showChapter(CURRENT);
+        }
+        syncMode();
+      });
+    })(ts[i]);
+  }
+  syncMode();
+})();
+
+/* 键盘左右翻页（仅分页 + 章节视图） */
+document.addEventListener('keydown', function(e){
+  if (!PAGED) { return; }
+  var tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') { return; }
+  if (document.body.classList.contains('view-chapter')) {
+    if (e.key === 'ArrowLeft' && CURRENT > 1) { showChapter(CURRENT - 1); }
+    else if (e.key === 'ArrowRight' && CURRENT < TOTAL) { showChapter(CURRENT + 1); }
+  }
+});
+
+/* URL hash 变化（手动改地址 / 浏览器前进后退） */
+window.addEventListener('hashchange', function(){
+  var h = location.hash;
+  var m = h.match(/ch-(\d+)/);
+  if (m) { var n = +m[1]; if (n >= 1 && n <= TOTAL) { showChapter(n); return; } }
+  if (h === '#study') { showStudy(); return; }
+  if (h === '#cover') { showCover(); return; }
+});
+
+/* 工具箱面板：统一收纳系统功能（阅读设置 / 笔记 / 分享） */
+function openTools(){ var p = $('#toolsPanel'), m = $('#toolsMask'); if (p) p.classList.add('open'); if (m) m.classList.add('open'); }
+function closeTools(){ var p = $('#toolsPanel'), m = $('#toolsMask'); if (p) p.classList.remove('open'); if (m) m.classList.remove('open'); }
+try {
+  $('#toolsBtn').addEventListener('click', function(e){ e.stopPropagation(); var p = $('#toolsPanel'); if (p.classList.contains('open')) { closeTools(); } else { openTools(); } });
+  var tb = $('#toolsBtnBottom'); if (tb) { tb.addEventListener('click', function(e){ e.stopPropagation(); openTools(); }); }
+  $('#toolsClose').addEventListener('click', closeTools);
+  $('#toolsMask').addEventListener('click', closeTools);
+  $('#shareAnshen').addEventListener('click', function(){ shareAnshen(); closeTools(); });
+} catch (e) {}
+
+/* 初始化（每项独立容错，单点失败不影响其他功能） */
+try { refreshTocDates(); } catch (e) {}
+try { updateToday(); } catch (e) {}
+try { markReadToc(); } catch (e) {}
+try { loadShengNotes(); } catch (e) {}
+try { bindShengNotes(); } catch (e) {}
+try { $('#exportSheng').addEventListener('click', exportSheng); } catch (e) {}
+try { $('#anshenShare').addEventListener('click', shareAnshen); } catch (e) {}
+document.body.classList.add('paged');   /* 默认分页阅读 */
+try {
+  var h0 = location.hash;
+  var m0 = h0.match(/ch-(\d+)/);
+  if (m0) { var n0 = +m0[1]; if (n0 >= 1 && n0 <= TOTAL) { showChapter(n0); } else { showCover(); } }
+  else if (h0 === '#study') { showStudy(); }
+  else { showCover(); markActive(Math.max(1, Math.min(TOTAL, dayIndex()))); }
+} catch (e) { try { showCover(); } catch (e2) {} }
+
+/* URL 带章节链接打开时：高亮闪烁（跳转由原生锚点完成） */
+(function(){
+  try {
+    var m = location.hash.match(/ch-(\d+)/);
+    if (m) {
+      var n = +m[1];
+      if (n >= 1 && n <= TOTAL) {
+        var el = document.getElementById('ch-' + n);
+        if (el) { setTimeout(function(){ el.classList.add('flash'); }, 400); }
+      }
+    }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

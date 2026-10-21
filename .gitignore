@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+.vscode/
+
+# Build artifacts
+dist/
+*.zip
+*.skill
+
+# WorkBuddy project data
+.workbuddy/
+.genie
+
+# OS junk
+Thumbs.db
