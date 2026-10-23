@@ -43,7 +43,7 @@ author: AIYAZONE
 1. **确认范围**：问清书名、大概章数、是否要「朱注/四书互参」（《四书》类才有，其它书可省）、是否要注音。
 2. **上网找底本**：用 `WebSearch` / `WebFetch` 从维基文库、国学网等抓取**公有领域**原文，按章拆分写入 `chapters.json`（`[{n, label, text}]`，必需）。同时抓逐句译文、章内注释/串讲、研读素材。
 3. **整理数据**：严格按 `references/data-schema.md` 落盘各 JSON。关键校验：`anshen` 长度=章数、`reflections` 覆盖每章、`content.json` 为 dict（非 list）、`study.json` 中 `structure`/`spine` 为列表（非字符串）、`modern_anxiety` 字段名为 `theme/stress/remedy/quote`（非 `title/problem/cure`）、`p1.json` 中 `bibliography` 每条 2 值（非 3）、`echoes` 每条 4 值。网络素材不足时，译文/注释可基于原文**自撰疏通**并在研读「引用说明」标注为自撰；只收公有领域原文，不复制现代受版权保护的内容。
-4. **写 `config.json`**：必须填 `book`/`key`/`favchar`/`theme`/`subtitle`/`intro`/`sidebar_foot`；`share_base` 留空（运行时自动用 `location.origin`）。**`subtitle` 必须有且须准确**——格式如「《礼记》第四十二篇 · 曾子述 · 四书之首」，用于封面标题下方一行说明。不确定字段就照抄 `samples/config.json` 再改。
+4. **写 `config.json`**：必须填 `book`/`key`/`favchar`/`theme`/`subtitle`/`intro`/`sidebar_foot`/`footer_cite`；`share_base` 留空（运行时自动用 `location.origin`）。**`subtitle` 必须有且须准确**——格式如「《礼记》第四十二篇 · 曾子述 · 四书之首」，用于封面标题下方一行说明。**`footer_cite` 必须填正确的文本依据**——四书类填如「文本依据：朱熹《四书章句集注》三十三章，并与《礼记·中庸》原文交叉校对」，非四书类填如「文本依据：维基文库《冰鉴》简体版，属公有领域古籍」。不确定字段就照抄 `samples/config.json` 再改。
 5. **构建**：
    ```bash
    python3 scripts/build_reader.py 项目目录 --out 项目目录/dist/index.html

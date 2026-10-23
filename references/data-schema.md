@@ -24,6 +24,8 @@ python3 scripts/build_reader.py 项目目录 [--out dist/index.html]
 | `segments` | 章间呼应徽标分段 `[[阈值, 标签], ...]`，如 `[[1,"三纲领"],[5,"八条目"],[11,"平天下"]]`；留空无徽标。 |
 | `intro` | 封面引言段落（HTML 允许）。 |
 | `sidebar_foot` | 侧栏底部说明（HTML 允许）。 |
+| `footer_cite` | 页面底部文本依据说明（HTML 允许）。默认为通用公有领域说明。四书类可填如「文本依据：朱熹《四书章句集注》{{TOTAL_CN}}章」。 |
+| `footer_slogan` | 页面底部口号行。默认为「{book}共读 · 一天一章 · {total_cn}天」。 |
 
 ---
 

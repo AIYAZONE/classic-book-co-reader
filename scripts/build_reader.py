@@ -438,6 +438,8 @@ def main():
     intro = cfg.get('intro', '%s共读 · 一天一章，循序渐进。' % book)
     subtitle = cfg.get('subtitle', '')
     sidebar_foot = cfg.get('sidebar_foot', '一天一章 · %s天<br>文本依据：%s<br>虚线标注的字为通假 / 异读，点按可看说明' % (total_cn, book))
+    footer_cite = cfg.get('footer_cite', '文本依据：公有领域古籍底本，译文、串讲、解读等均为编者自撰。')
+    footer_slogan = cfg.get('footer_slogan', '%s共读 · 一天一章 · %s天' % (book, total_cn))
 
     html = (tpl
             .replace('{{BOOK}}', book)
@@ -448,6 +450,8 @@ def main():
             .replace('{{INTRO}}', intro)
             .replace('{{SUBTITLE}}', subtitle)
             .replace('{{SIDEBAR_FOOT}}', sidebar_foot)
+            .replace('{{FOOTER_CITE}}', footer_cite)
+            .replace('{{FOOTER_SLOGAN}}', footer_slogan)
             .replace('__TOTAL__', str(total))
             .replace('__CN__', json.dumps(CN, ensure_ascii=False))
             .replace('__DATA__', json.dumps(chapters, ensure_ascii=False))
