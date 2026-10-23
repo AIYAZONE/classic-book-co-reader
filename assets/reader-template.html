@@ -167,13 +167,13 @@ footer{padding:34px 0 46px;text-align:center;color:var(--soft);font-size:12px;li
   .pager .pager-info{font-size:12px;letter-spacing:0;line-height:1.6}
   .pager .plabel{display:none}
 }
-/* 窄屏（含平板）：顶栏导航（首页/研读/今日/目录）移到底部 tab 栏，顶栏只留设置按钮；底部导航常驻 */
+/* 窄屏（含平板）：导航移到底部 tab 栏；顶栏直接隐藏，最大化正文可视面积 */
 @media (max-width:1023px){
   .desk-only{display:none}
   .top-actions .nav-btn{display:none}
   .bottom-nav{display:flex}
-  /* 顶栏在移动端不吸顶：随正文滚动消失，最大化正文可视面积；主导航已由底部固定 tab 栏承载 */
-  .topbar{position:static;backdrop-filter:none;border-bottom:none}
+  /* 顶栏在移动端直接隐藏：主导航已由底部固定 tab 栏承载，顶栏孤零品牌名无信息量 */
+  .topbar{display:none}
   /* 跳转锚点时不再为吸顶顶栏预留空间 */
   .chapter,.study{scroll-margin-top:12px}
   /* 目录抽屉：章号 / 标题 / 共读日期 两行展示，日期常显 */
@@ -936,13 +936,13 @@ function revealTocMobile(){
 function toggleToc(force){
   var open = (typeof force === 'boolean') ? force : !document.body.classList.contains('toc-open');
   document.body.classList.toggle('toc-open', open);
-  eachNode(document.querySelectorAll('.act-toc'), function(el){ el.classList.toggle('active', open); });
+  /* 移动端目录按钮不保持选中态——与工具箱一致，点击即开关，关闭后无 active */
   if (open && !isWide()) { revealTocMobile(); }
 }
 $('#tocBtn').addEventListener('click', function(){
   if (isWide()) { revealTocActive(); } else { toggleToc(); }
 });
-$('#tocBackdrop').addEventListener('click', function(){ document.body.classList.remove('toc-open'); });
+$('#tocBackdrop').addEventListener('click', function(){ document.body.classList.remove('toc-open'); eachNode(document.querySelectorAll('.act-toc'), function(el){ el.classList.remove('active'); }); });
 /* 注音开关（顶栏 + 抽屉工具区两处按钮，状态同步） */
 function syncPy(){
   var on = !document.body.classList.contains('no-py');
