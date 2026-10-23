@@ -414,8 +414,9 @@ body.paged.view-chapter .pager{display:flex}
   background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical;min-height:64px}
 .sheng-note:focus{outline:none;border-color:var(--accent)}
 
-/* ========== 今日安心签 ========== */
-.anshen-card{margin-top:14px;background:linear-gradient(135deg,var(--accent-bg),#fdf3ee);border:1px solid #eccfc6;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+/* ========== 今日安心签（独立区块，不嵌于今日共读内） ========== */
+.anshen-block{margin-top:18px}
+.anshen-card{background:linear-gradient(135deg,var(--accent-bg),#fdf3ee);border:1px solid #eccfc6;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .anshen-label{font-size:12px;letter-spacing:2px;color:var(--accent-deep);font-weight:600}
 .anshen-text{font-family:"STKaiti","KaiTi",serif;font-size:19px;line-height:1.7;color:var(--ink);text-align:justify}
 .anshen-share{margin-top:2px}
@@ -593,14 +594,16 @@ __TOC_ITEMS__
             <button class="btn" id="resumeBtn" hidden>继续阅读</button>
             <button class="btn" id="jumpBtn">跳到本章</button>
           </div>
-          <div class="anshen-card" id="anshenCard">
-            <div class="anshen-label">今日安心签</div>
-            <div class="anshen-text" id="anshenText"></div>
-            <button class="btn ghost anshen-share" id="anshenShare" type="button">分享这句</button>
-          </div>
           <noscript><p class="noscript-tip" style="display:block">当前环境未启用脚本：目录跳转与全文阅读可正常使用，「今日共读」定位与「分享本章」链接不可用。</p></noscript>
         </div>
       </section>
+
+      <section class="anshen-block">
+        <div class="anshen-card" id="anshenCard">
+          <div class="anshen-label">今日安心签</div>
+          <div class="anshen-text" id="anshenText"></div>
+          <button class="btn ghost anshen-share" id="anshenShare" type="button">分享这句</button>
+        </div>
       </section>
 
 __STUDY_HTML__
