@@ -159,10 +159,13 @@ def detail_html(n, chapters_text, CONTENT, SENT, P1, P2, SCHOOL_INTRO, BASIS, PI
         intro = esc(item['intro']) if item.get('intro') else esc(SCHOOL_INTRO.get(lab, ''))
         intro_html = '<div class="jintro">%s</div>' % intro if intro else ''
         basis = ('<span class="jbasis">所本：%s</span>' % esc(item.get('basis', BASIS.get(lab, '')))) if (item.get('basis') or lab in BASIS) else ''
+        # 将 text 按 \n 分段，每段一个 <p>
+        text_ps = [p for p in item.get('text', '').split('\n') if p.strip()]
+        text_html = ''.join('<p>%s</p>' % esc(p) for p in text_ps) if text_ps else ''
         jd_rows.append(
             '<div class="jrow"><button type="button" class="jlabel" aria-expanded="false">%s</button>'
-            '<div class="jbody">%s%s<p>%s</p></div></div>'
-            % (esc(lab), basis, intro_html, esc(item.get('text', ''))))
+            '<div class="jbody">%s%s%s</div></div>'
+            % (esc(lab), basis, intro_html, text_html))
     jiedu = ('<p class="jhint">学派/视角名称可点击，展开简介</p>' + ''.join(jd_rows)) if jd_rows else '<p class="nodata">（暂无）</p>'
     jiedu = '<div class="jiedu">%s</div>' % jiedu
     # 导读
