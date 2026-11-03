@@ -1,0 +1,12 @@
+{
+  "hub_name": "国学经典共读",
+  "hub_url": "https://guoxue.aiyazone.com",
+  "books": [
+    { "key": "daxue",         "name": "大学",   "tag": "四书 · 11 章", "url": "https://daxue.aiyazone.com" },
+    { "key": "zhongyong",     "name": "中庸",   "tag": "四书 · 33 章", "url": "https://zhongyong.aiyazone.com" },
+    { "key": "zhixue",        "name": "止学",   "tag": "道家 · 10 章", "url": "https://zhixue.aiyazone.com" },
+    { "key": "sushu",         "name": "素书",   "tag": "道家 · 6 章",  "url": "https://sushu.aiyazone.com" },
+    { "key": "changduanjing", "name": "长短经", "tag": "纵横 · 64 篇", "url": "https://changduanjing.aiyazone.com" },
+    { "key": "bingjian",      "name": "冰鉴",   "tag": "识人 · 7 篇",  "url": "https://bingjian.aiyazone.com" }
+  ]
+}

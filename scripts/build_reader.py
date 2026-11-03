@@ -386,6 +386,27 @@ def make_favicon(char, theme):
     b64 = base64.b64encode(svg.encode('utf-8')).decode('ascii')
     return 'data:image/svg+xml;base64,' + b64
 
+# ------------------------- 总站 / 书单 -------------------------
+def hub_books_html(key, proj):
+    """生成工具箱「更多经典」书单。数据优先取项目目录 hub-books.json，
+    否则取 skill assets 下的共享书单；当前书标记为「在读」。"""
+    p = os.path.join(proj, 'hub-books.json')
+    if not os.path.exists(p):
+        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'hub-books.json')
+    if not os.path.exists(p):
+        return '', '', ''
+    hub = json.load(open(p, encoding='utf-8'))
+    items = []
+    for b in hub.get('books', []):
+        if b.get('key') == key:
+            items.append('<span class="tp-book cur"><span class="tb-name">%s</span><span class="tb-tag">在读 · %s</span></span>'
+                         % (esc(b['name']), esc(b.get('tag', ''))))
+        else:
+            items.append('<a class="tp-book" href="%s"><span class="tb-name">%s</span><span class="tb-tag">%s</span></a>'
+                         % (esc(b['url']), esc(b['name']), esc(b.get('tag', ''))))
+    items.append('<a class="hub-all" href="%s">📚 返回 %s 总站 →</a>' % (esc(hub.get('hub_url', '')), esc(hub.get('hub_name', '国学经典共读'))))
+    return ''.join(items), hub.get('hub_url', ''), hub.get('hub_name', '国学经典共读')
+
 # ------------------------- 主流程 -------------------------
 def main():
     if len(sys.argv) < 2:
@@ -430,6 +451,7 @@ def main():
 
     toc_items, chapters_html = build_chapters(chapters, CN, BUILD_TODAY, CONTENT, SENT, P1, P2, SCHOOL_INTRO, BASIS, PINYIN, TONGGJIA, PHRASE)
     study_html_out = study_html(STUDY, P1, P2, CN, SEGMENTS)
+    hub_books, hub_url, hub_name = hub_books_html(key, proj)
 
     # 模板
     tpl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'reader-template.html')
@@ -455,6 +477,9 @@ def main():
             .replace('{{SIDEBAR_FOOT}}', sidebar_foot)
             .replace('{{FOOTER_CITE}}', footer_cite)
             .replace('{{FOOTER_SLOGAN}}', footer_slogan)
+            .replace('{{HUB_URL}}', hub_url)
+            .replace('{{HUB_NAME}}', hub_name)
+            .replace('__HUB_BOOKS__', hub_books)
             .replace('__TOTAL__', str(total))
             .replace('__CN__', json.dumps(CN, ensure_ascii=False))
             .replace('__DATA__', json.dumps(chapters, ensure_ascii=False))

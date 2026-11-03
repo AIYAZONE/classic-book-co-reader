@@ -148,7 +148,23 @@ body.no-py ruby rt{display:none}
 .backtop.show{display:flex}
 .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:70;background:rgba(46,42,34,.92);color:#fff;font-size:13px;padding:8px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s}
 .toast.show{opacity:1}
+/* ========== 回总站入口 / 更多经典 ========== */
+.brand-link{text-decoration:none;color:inherit}
+.brand-link:hover{color:var(--accent-deep)}
+.hub-back{display:inline-block;margin:0 0 8px;font-size:12px;color:var(--soft);text-decoration:none;letter-spacing:1px;border-bottom:1px dotted var(--soft);padding-bottom:1px}
+.hub-back:hover{color:var(--accent);border-color:var(--accent)}
 footer{padding:34px 0 46px;text-align:center;color:var(--soft);font-size:12px;line-height:2}
+footer .hub-foot a{color:var(--accent-deep);text-decoration:none;border-bottom:1px dotted var(--accent);font-size:13px}
+footer .hub-foot a:hover{color:var(--accent)}
+.tp-books{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tp-book{display:flex;flex-direction:column;gap:2px;padding:9px 12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--ink);transition:.15s}
+.tp-book:hover{border-color:var(--accent);background:#fff}
+.tp-book .tb-name{font-family:"STKaiti","KaiTi",serif;font-size:16px;letter-spacing:2px}
+.tp-book .tb-tag{font-size:11px;color:var(--soft)}
+.tp-book.cur{border-color:var(--accent);background:var(--accent-bg);cursor:default}
+.tp-book.cur .tb-tag{color:var(--accent-deep);font-weight:600}
+.tp-books .hub-all{grid-column:1/-1;text-align:center;padding:8px;font-size:13px;color:var(--accent-deep);text-decoration:none;border:1px dashed var(--accent);border-radius:8px}
+.tp-books .hub-all:hover{background:var(--accent-bg)}
 
 @media (max-width:640px){
   .toc ol{grid-template-columns:1fr}
@@ -509,7 +525,8 @@ body.paged.view-chapter .pager{display:flex}
 <div class="layout">
   <aside class="sidebar">
     <div class="sidebar-head">
-      <div class="brand">{{BOOK}}<small>共读</small></div>
+      <a class="hub-back" href="{{HUB_URL}}" title="返回{{HUB_NAME}}总站">← {{HUB_NAME}}</a>
+      <a class="brand brand-link" href="{{HUB_URL}}" title="返回{{HUB_NAME}}总站">{{BOOK}}<small>共读</small></a>
       <div class="sidebar-sub">目 录 · {{TOTAL_CN}}章</div>
     </div>
     <a href="#study" class="study-nav">研读 · 脉络 / 概念 / 名句</a>
@@ -527,7 +544,7 @@ __TOC_ITEMS__
   <div class="content">
     <header class="topbar">
       <div class="topbar-inner">
-        <div class="brand">{{BOOK}}<small>共读</small></div>
+        <a class="brand brand-link" href="{{HUB_URL}}" title="返回{{HUB_NAME}}总站">{{BOOK}}<small>共读</small></a>
         <div class="top-actions">
           <button class="btn ghost nav-btn act-home" id="homeBtn" title="回到首页 / 封面">首页</button>
           <button class="btn ghost nav-btn act-study" id="studyBtn" title="研读专区">研读</button>
@@ -567,6 +584,11 @@ __TOC_ITEMS__
         <div class="tp-sec-t">今日安心签</div>
         <div class="tp-anshen" id="tpAnshenText"></div>
         <button class="btn block ghost" id="shareAnshen" type="button">分享这句</button>
+      </div>
+
+      <div class="tp-sec">
+        <div class="tp-sec-t">更多经典</div>
+        <div class="tp-books">__HUB_BOOKS__</div>
       </div>
     </div>
 
@@ -625,6 +647,7 @@ __CHAPTERS_HTML__
       <footer>
         <p>{{FOOTER_CITE}}</p>
         <p>{{FOOTER_SLOGAN}}</p>
+        <p class="hub-foot"><a href="{{HUB_URL}}">📚 {{HUB_NAME}} · 更多经典 →</a></p>
       </footer>
     </div>
   </div>
