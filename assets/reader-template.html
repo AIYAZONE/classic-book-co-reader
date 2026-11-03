@@ -471,9 +471,9 @@ body.paged.view-chapter .pager{display:flex}
 .btn.block{display:block;width:100%;margin-top:8px;text-align:center}
 .btn:disabled, .btn.block:disabled{opacity:.5;cursor:not-allowed;background:#efe7d5;color:var(--soft);border-color:var(--line)}
 .btn.block:disabled:hover{background:#efe7d5}
-/* PC（≥1024px）：工具箱改为右上角下拉面板 */
+/* PC（≥1024px）：工具箱改为右上角下拉面板（限高 + 内部滚动，避免内容被视口截断） */
 @media (min-width:1024px){
-  .tools-panel{left:auto;right:14px;bottom:auto;top:64px;width:300px;max-width:300px;margin:0;border-radius:16px;box-shadow:0 10px 36px rgba(0,0,0,.18)}
+  .tools-panel{left:auto;right:14px;bottom:auto;top:64px;width:340px;max-width:340px;margin:0;border-radius:16px;box-shadow:0 10px 36px rgba(0,0,0,.18);max-height:calc(100vh - 84px);overflow-y:auto}
 }
 /* 践行笔记：纯本机存储，无需登录 */
 
