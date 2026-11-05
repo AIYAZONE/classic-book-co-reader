@@ -159,17 +159,23 @@ def detail_html(n, chapters_text, CONTENT, SENT, P1, P2, SCHOOL_INTRO, BASIS, PI
         intro = esc(item['intro']) if item.get('intro') else esc(SCHOOL_INTRO.get(lab, ''))
         intro_html = '<div class="jintro">%s</div>' % intro if intro else ''
         basis = ('<span class="jbasis">所本：%s</span>' % esc(item.get('basis', BASIS.get(lab, '')))) if (item.get('basis') or lab in BASIS) else ''
-        # 将 text 按 \n 分段，每段一个 <p>
+        # 将 text 按 \n 分段，每段一个 <p>；@@date: 开头的行渲染为批次标题
         text_ps = [p for p in item.get('text', '').split('\n') if p.strip()]
-        text_html = ''.join('<p>%s</p>' % esc(p) for p in text_ps) if text_ps else ''
+        text_html = ''.join(
+            '<p class="wdg-date">%s</p>' % esc(p[7:]) if p.startswith('@@date:') else '<p>%s</p>' % esc(p)
+            for p in text_ps) if text_ps else ''
         jd_rows.append(
             '<div class="jrow"><button type="button" class="jlabel" aria-expanded="false">%s</button>'
             '<div class="jbody">%s%s%s</div></div>'
             % (esc(lab), basis, intro_html, text_html))
     jiedu = ('<p class="jhint">学派/视角名称可点击，展开简介</p>' + ''.join(jd_rows)) if jd_rows else '<p class="nodata">（暂无）</p>'
     jiedu = '<div class="jiedu">%s</div>' % jiedu
-    # 导读
-    dao = '<p>%s</p>' % esc(c['dao']) if c.get('dao') else '<p class="nodata">（暂无）</p>'
+    # 导读（支持 \n 分段）
+    if c.get('dao'):
+        dao_ps = [p for p in c['dao'].split('\n') if p.strip()]
+        dao = ''.join('<p>%s</p>' % esc(p) for p in dao_ps)
+    else:
+        dao = '<p class="nodata">（暂无）</p>'
     # 省察
     sheng = (P1.get('reflections', {}) or {}).get(str(n)) or c.get('sheng')
     if sheng:
